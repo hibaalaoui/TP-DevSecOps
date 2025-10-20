@@ -25,8 +25,8 @@ jobs:
       with:
         category: "/language:javascript"
 
-    - name: Upload CodeQL report as HTML artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload CodeQL SARIF report
+      uses: actions/upload-artifact@v4
       with:
-        name: codeql-report
-        path: codeql-report.html
+        name: codeql-sarif
+        path: results/codeql-results.sarif
