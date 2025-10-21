@@ -35,19 +35,15 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           npm install -g snyk
-          snyk auth $SNYK_TOKEN
-          snyk test --json > snyk-results.json || true
-          cat snyk-results.json
-      
-      - name: Verify JSON file exists
-        run: |
-          if [ -f snyk-results.json ]; then
-            echo "✅ snyk-results.json trouvé"
-            ls -lh snyk-results.json
-          else
-            echo "❌ snyk-results.json non trouvé"
-            echo "{\"error\": \"Aucun résultat généré\"}" > snyk-results.json
+          snyk test --json > snyk-results.json 2>&1 || true
+          
+          # Vérifier si le fichier contient des données valides
+          if [ ! -s snyk-results.json ]; then
+            echo '{"ok": false, "vulnerabilities": [], "error": "No results generated"}' > snyk-results.json
           fi
+          
+          echo "📊 Contenu du rapport:"
+          cat snyk-results.json
       
       - name: Upload Scan Results
         uses: actions/upload-artifact@v4
