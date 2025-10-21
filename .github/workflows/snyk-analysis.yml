@@ -1,4 +1,5 @@
 name: "SCA using Snyk"
+
 on:
   push:
     branches:
@@ -6,9 +7,11 @@ on:
   pull_request:
     branches:
       - master
+
 permissions:
   contents: write
   security-events: write
+
 jobs:
   security_testing:
     name: Security Testing
@@ -27,12 +30,24 @@ jobs:
         run: npm install
       
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --json-file-output=snyk-results.json
+        run: |
+          npm install -g snyk
+          snyk auth $SNYK_TOKEN
+          snyk test --json > snyk-results.json || true
+          cat snyk-results.json
+      
+      - name: Verify JSON file exists
+        run: |
+          if [ -f snyk-results.json ]; then
+            echo "✅ snyk-results.json trouvé"
+            ls -lh snyk-results.json
+          else
+            echo "❌ snyk-results.json non trouvé"
+            echo "{\"error\": \"Aucun résultat généré\"}" > snyk-results.json
+          fi
       
       - name: Upload Scan Results
         uses: actions/upload-artifact@v4
